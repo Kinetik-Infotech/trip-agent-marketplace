@@ -73,12 +73,26 @@ def fetch(src, base):
     return "data:%s;base64,%s" % (sniff(data), base64.b64encode(data).decode("ascii"))
 
 
+TRACKING = {"pin", "mcp_request_id", "source"}
+
+
+def clean_href(href):
+    """Keep the parts of a booking link that pick the hotel and dates. Drop the parameters a connector adds to
+    tie the link to the traveller's session (pin, mcp_request_id, source, utm_*), which a published page must not carry."""
+    parts = urllib.parse.urlsplit(href)
+    query = [(k, v) for k, v in urllib.parse.parse_qsl(parts.query, keep_blank_values=True)
+             if k not in TRACKING and not k.startswith("utm_")]
+    return urllib.parse.urlunsplit((parts.scheme, parts.netloc, parts.path, urllib.parse.urlencode(query), parts.fragment))
+
+
 def safe_links(node):
-    """Drop any link that isn't http or https, so a page can't carry a script link."""
+    """Drop any link that isn't http or https, so a page can't carry a script link, and strip tracking from the rest."""
     if isinstance(node, dict):
         for key in ("href",):
             if key in node and not re.match(r"^https?://", str(node[key])):
                 node.pop(key)
+            elif key in node:
+                node[key] = clean_href(str(node[key]))
         for value in node.values():
             safe_links(value)
     elif isinstance(node, list):
