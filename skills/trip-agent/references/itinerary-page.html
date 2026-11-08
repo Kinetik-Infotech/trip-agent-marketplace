@@ -51,6 +51,7 @@
   td.date { white-space: nowrap; font-weight: 500; }
   td.time { white-space: nowrap; color: var(--muted); width: 4.5rem; }
   td.price, th.price { text-align: right; white-space: nowrap; }
+  td .nightly { display: block; font-size: 0.8rem; color: var(--muted); }
   tfoot td { border-top: 1px solid var(--accent); border-bottom: 0; font-weight: 500; }
   .pill { display: inline-block; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid currentColor; padding: 0.05rem 0.45rem; white-space: nowrap; }
   .pill.chosen, .pill.booked { color: var(--chosen); }
@@ -155,6 +156,15 @@
       }
       requestAnimationFrame(frame);
     }
+    // Nightly rate from a total price and a night count ("£974 ... 3 nights" gives "£325 a night"), or "" when either is missing.
+    function perNight(price, text, nights) {
+      var m = /([£$€])\s?([\d,]+(?:\.\d+)?)/.exec(price || "");
+      var n = nights || +((/(\d+)\s+nights?/i.exec((price || "") + " " + (text || "")) || [])[1] || 0);
+      if (!m || !n) return "";
+      if (n === 1) return "1 night";
+      var each = parseFloat(m[2].replace(/,/g, "")) / n;
+      return m[1] + Math.round(each).toLocaleString("en-GB") + " a night, " + n + " nights";
+    }
     var page = document.getElementById("page");
     document.getElementById("title").textContent = data.title || "Itinerary";
     document.getElementById("trip").textContent = data.trip ? "Trip Agent · " + data.trip : "Trip Agent";
@@ -214,7 +224,10 @@
         var status = el("span", "pill " + (b.status || "open"), b.status || "open");
         var link = "";
         if (b.href && /^https?:\/\//i.test(b.href)) { link = el("a", null, b.linkLabel || "Link"); link.href = b.href; link.target = "_blank"; link.rel = "noopener"; }
-        return [b.item, b.dates, b.detail, b.price, b.cancellation, status, link];
+        var priceCell = b.price;
+        var each = b.nightly || perNight(b.price, b.detail, b.nights);
+        if (each) { priceCell = el("span"); priceCell.appendChild(document.createTextNode(b.price)); priceCell.appendChild(el("span", "nightly", each)); }
+        return [b.item, b.dates, b.detail, priceCell, b.cancellation, status, link];
       });
       var foot = null;
       if (data.total) {

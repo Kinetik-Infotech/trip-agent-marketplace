@@ -85,6 +85,7 @@
   .facts div:last-child { border-bottom: 0; }
   .facts dt { font-family: var(--display); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); padding-top: 0.3rem; }
   .facts dd { margin: 0; font-variant-numeric: tabular-nums; }
+  .facts .nightly { display: block; font-size: 0.95rem; color: var(--muted); font-style: italic; }
   .words { display: grid; gap: 0.9rem; align-content: start; }
   .words h4 { font-family: var(--display); font-weight: 400; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0 0 0.15rem; }
   .words p { margin: 0; max-width: 62ch; }
@@ -135,6 +136,15 @@
     setText("updated", data.updated ? "Prices checked " + data.updated : "");
     if (data.title) document.title = data.title;
 
+    // Nightly rate from a total price and a night count ("£974 ... 3 nights" gives "£325 a night"), or "" when either is missing.
+    function perNight(price, text, nights) {
+      var m = /([£$€])\s?([\d,]+(?:\.\d+)?)/.exec(price || "");
+      var n = nights || +((/(\d+)\s+nights?/i.exec((price || "") + " " + (text || "")) || [])[1] || 0);
+      if (!m || !n) return "";
+      if (n === 1) return "1 night";
+      var each = parseFloat(m[2].replace(/,/g, "")) / n;
+      return m[1] + Math.round(each).toLocaleString("en-GB") + " a night, " + n + " nights";
+    }
     var stays = document.getElementById("stays");
     var groups = data.groups || [];
     if (!groups.length) stays.appendChild(el("p", "empty", "No options yet. They appear here as the planner shortlists them."));
@@ -260,7 +270,10 @@
         (o.facts || []).forEach(function (f) {
           var row = el("div");
           row.appendChild(el("dt", null, f.label));
-          row.appendChild(el("dd", null, f.value));
+          var dd = el("dd", null, f.value);
+          var each = /^price$/i.test(f.label) ? (o.nightly || perNight(f.value, f.value, o.nights)) : "";
+          if (each) dd.appendChild(el("span", "nightly", each));
+          row.appendChild(dd);
           facts.appendChild(row);
         });
         detail.appendChild(facts);
