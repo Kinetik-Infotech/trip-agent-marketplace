@@ -1,6 +1,6 @@
 # Trip Agent
 
-A free trip planner plugin for Claude, from Kinetik. It learns your taste from pairs of hotel photos, then finds places, hotels and flights that suit you, at your pace. What it learns about you stays on your computer and in your own Claude account.
+A free trip planner plugin for Claude, from Kinetik. It runs in your own Claude account, so you need a paid Claude plan, such as Pro or Max. It learns your taste from pairs of hotel photos, then finds places, hotels and flights that suit you, at your pace. What it learns about you stays on your computer and in your own Claude account.
 
 ## Install
 
