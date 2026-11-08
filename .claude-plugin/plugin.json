@@ -1,7 +1,7 @@
 {
   "name": "trip-agent",
   "description": "A trip planner that works like a travel agent across the desk. Learns the traveller's taste from pairs of hotel photos, then curates countries, hotels and flights one recommendation at a time. Everything it learns is saved in the traveller's own folder.",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "author": {
     "name": "Kinetik"
   }
