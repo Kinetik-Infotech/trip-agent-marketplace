@@ -53,19 +53,35 @@ else
   exit 1
 fi
 
-# The listing named trip-agent: ours if it comes from $MARKETPLACE, other if it comes from anywhere else, none if absent.
+# The listing named trip-agent: ours if it comes from $MARKETPLACE, other if it comes from anywhere else, none if
+# absent. A local folder counts only when --marketplace named one. Anything that cannot be read counts as other.
+case "$MARKETPLACE" in /*|./*|../*|"~/"*) IS_PATH=1 ;; *) IS_PATH=0 ;; esac
 listing() {
-  claude plugin marketplace list --json 2>>"$LOG" | python3 -c '
-import json, os, sys
-want = sys.argv[1]
-for m in json.load(sys.stdin):
-    if m.get("name") != "trip-agent":
-        continue
-    sources = {m.get("repo"), m.get("url"), m.get("path") and os.path.realpath(m["path"])}
-    print("ours" if want in sources or os.path.realpath(want) in sources else "other")
-    break
-else:
-    print("none")' "$MARKETPLACE"
+  local out
+  out="$(claude plugin marketplace list --json 2>>"$LOG")" || { echo other; return; }
+  printf '%s' "$out" | python3 -c '
+import json, os, re, sys
+want, is_path = sys.argv[1], sys.argv[2] == "1"
+def slug(v):
+    v = (v or "").strip().lower()
+    v = re.sub(r"^(https?://|git@)github\.com[:/]", "", v)
+    return re.sub(r"(\.git)?/?$", "", v)
+try:
+    items = json.load(sys.stdin)
+    assert isinstance(items, list)
+    for m in items:
+        if not isinstance(m, dict) or m.get("name") != "trip-agent":
+            continue
+        if is_path:
+            ok = bool(m.get("path")) and os.path.realpath(m["path"]) == os.path.realpath(os.path.expanduser(want))
+        else:
+            ok = not m.get("path") and slug(want) in (slug(m.get("repo")), slug(m.get("url")))
+        print("ours" if ok else "other")
+        break
+    else:
+        print("none")
+except Exception:
+    print("other")' "$MARKETPLACE" "$IS_PATH"
 }
 installed() {
   claude plugin list --json 2>>"$LOG" | python3 -c '
@@ -81,6 +97,9 @@ if [ "$state" = "other" ]; then
 elif [ "$state" = "ours" ]; then
   claude plugin marketplace update "$MARKETPLACE_NAME" >>"$LOG" 2>&1
   say "Trip Agent listing" "already there, updated"
+elif [ "$state" != "none" ]; then
+  say "Trip Agent listing" "could not be checked, so the install stopped. The log is $LOG"
+  exit 1
 elif claude plugin marketplace add "$MARKETPLACE" >>"$LOG" 2>&1; then
   say "Trip Agent listing" "added"
 else

@@ -40,11 +40,19 @@ else { Say "Python 3" "missing. Install it from python.org, then run this again"
 
 if (-not $python) { Write-Host "Python 3 is needed before the rest. Run this again once it is installed."; return }
 
-# Kinetik's listing, then the plugin from it. A listing called trip-agent from anywhere else stops the install.
-$listing = (claude plugin marketplace list --json 2>>$Log | Out-String | ConvertFrom-Json) | Where-Object { $_.name -eq $MarketplaceName } | Select-Object -First 1
-if ($listing -and $listing.repo -ne $Marketplace -and $listing.url -ne $Marketplace) {
-  Say "Trip Agent listing" "stopped. A listing called $MarketplaceName is already there, from somewhere other than $Marketplace. Remove it with: claude plugin marketplace remove $MarketplaceName, then run this again"
-  return
+# Kinetik's listing, then the plugin from it. A listing called trip-agent from anywhere else, or a list that cannot
+# be read, stops the install.
+$raw = claude plugin marketplace list --json 2>>$Log | Out-String
+if ($LASTEXITCODE -ne 0) { Say "Trip Agent listing" "could not be checked, so the install stopped. The log is $Log"; return }
+try { $all = @($raw | ConvertFrom-Json) } catch { Say "Trip Agent listing" "could not be checked, so the install stopped. The log is $Log"; return }
+function Slug($v) { if (-not $v) { return "" }; (("$v".Trim().ToLowerInvariant()) -replace '^(https?://|git@)github\.com[:/]', '') -replace '(\.git)?/?$', '' }
+$listing = $all | Where-Object { $_.name -ceq $MarketplaceName } | Select-Object -First 1
+if ($listing) {
+  $ours = (-not $listing.path) -and ((Slug $listing.repo) -ceq (Slug $Marketplace) -or (Slug $listing.url) -ceq (Slug $Marketplace))
+  if (-not $ours) {
+    Say "Trip Agent listing" "stopped. A listing called $MarketplaceName is already there, from somewhere other than $Marketplace. Remove it with: claude plugin marketplace remove $MarketplaceName, then run this again"
+    return
+  }
 }
 if ($listing) {
   claude plugin marketplace update $MarketplaceName *>> $Log
