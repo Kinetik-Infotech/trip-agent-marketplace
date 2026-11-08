@@ -1,0 +1,292 @@
+<title>Trip Agent Options</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+  /* Layout: a ink-blue masthead, then one section per stay; each option opens on a wide lead photo with a contact sheet of the hotel's own photos beneath it, and its facts set like a room card. */
+  :root {
+    --ground: #f7f5f2;
+    --paper: #fffdfa;
+    --ink: #1e2533;
+    --muted: #5c6576;
+    --accent: #14213d;
+    --sand: #ddd4ca;
+    --on-accent: #f3ede6;
+    --chosen: #2f5d46;
+    --display: "Cinzel", "Trajan Pro", "Times New Roman", serif;
+    --body: "Cormorant Garamond", "Borgia Pro", Georgia, "Times New Roman", serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0d1320; --paper: #151c2b; --ink: #ece4dc; --muted: #a5aec0;
+      --accent: #c3d1ea; --sand: #2a3447; --on-accent: #f3ede6; --chosen: #8fc7a6; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0d1320; --paper: #151c2b; --ink: #ece4dc; --muted: #a5aec0;
+    --accent: #c3d1ea; --sand: #2a3447; --on-accent: #f3ede6; --chosen: #8fc7a6; color-scheme: dark;
+  }
+  body { background: var(--ground); color: var(--ink); font-family: var(--body); font-size: 1.1875rem; line-height: 1.55; }
+  .band { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .inner { max-width: 68rem; margin-inline: auto; }
+  .masthead { background: #14213d; color: var(--on-accent); padding-block: 3rem 2.5rem; }
+  .brand { font-family: var(--display); font-size: 0.8125rem; letter-spacing: 0.32em; text-transform: uppercase; opacity: 0.8; margin: 0; }
+  .masthead h1 { font-family: var(--display); font-weight: 400; font-size: clamp(1.9rem, 5vw, 3rem); letter-spacing: 0.07em; text-transform: uppercase; text-wrap: balance; margin: 0.6rem 0 0; }
+  .masthead .intro { font-style: italic; margin: 0.9rem 0 0; max-width: 40rem; opacity: 0.9; }
+  .masthead .updated { font-size: 0.95rem; margin: 0.9rem 0 0; opacity: 0.7; }
+  main { padding-block: 1rem 4rem; }
+  .stay { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2rem; padding-block: 2.5rem 0.5rem; }
+  .stay-head { grid-column: 1 / -1; }
+  @media (min-width: 64rem) { .stay { grid-template-columns: repeat(2, minmax(0, 1fr)); } .stay .detail { grid-template-columns: minmax(0, 1fr); } }
+  .stay-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.25rem 1.5rem; border-bottom: 1px solid var(--sand); padding-bottom: 0.6rem; }
+  .stay-head h2 { font-family: var(--display); font-weight: 400; font-size: 1.25rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin: 0; }
+  .stay-head p { margin: 0; color: var(--muted); font-style: italic; }
+  .option { display: grid; gap: 1.25rem; background: var(--paper); border: 1px solid var(--sand); padding: clamp(1rem, 3vw, 1.75rem); }
+  .option-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem 1rem; }
+  .option-head h3 { font-family: var(--display); font-weight: 400; font-size: clamp(1.35rem, 3vw, 1.75rem); letter-spacing: 0.06em; margin: 0; color: var(--accent); text-wrap: balance; }
+  .place { color: var(--muted); font-style: italic; }
+  .status { font-family: var(--display); font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; border: 1px solid currentColor; padding: 0.15rem 0.55rem; color: var(--muted); }
+  .status.chosen { color: var(--chosen); }
+  .lead { margin: 0; display: grid; gap: 0.4rem; }
+  .frame { position: relative; aspect-ratio: 3 / 2; max-width: 100%; overflow: hidden; background: var(--sand); }
+  .frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.1s ease; }
+  .frame img.on { opacity: 1; animation: drift 9s ease-out both; }
+  .frame.many { cursor: pointer; }
+  .nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; width: 2.75rem; height: 2.75rem; border: 0; border-radius: 50%; background: rgba(13, 19, 32, 0.45); color: #f3ede6; font: 400 1.6rem/1 var(--display); display: grid; place-items: center; padding: 0 0 0.15rem; opacity: 0; transition: opacity 0.35s ease, background 0.2s ease; cursor: pointer; }
+  .nav.prev { left: 0.75rem; }
+  .nav.next { right: 0.75rem; }
+  .frame:hover .nav, .frame:focus-within .nav { opacity: 0.9; }
+  .nav:hover { background: rgba(13, 19, 32, 0.72); }
+  .nav:focus-visible { opacity: 1; outline: 2px solid #f3ede6; outline-offset: 2px; }
+  @media (hover: none) { .nav { opacity: 0.6; } }
+  .progress { height: 2px; background: var(--sand); overflow: hidden; }
+  .progress span { display: block; height: 100%; width: 0; background: var(--accent); }
+  .progress span.run { animation: fill var(--slide, 5s) linear forwards; }
+  .progress.paused span { animation-play-state: paused; }
+  @keyframes drift { from { transform: scale(1.0); } to { transform: scale(1.07); } }
+  @keyframes fill { from { width: 0; } to { width: 100%; } }
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  @keyframes track { from { opacity: 0; letter-spacing: 0.22em; } to { opacity: 1; letter-spacing: 0.07em; } }
+  .masthead h1 { animation: track 1.4s cubic-bezier(.2,.7,.2,1) both; }
+  .masthead .intro, .masthead .updated { animation: rise 1s 0.5s ease both; }
+  .option { animation: rise 0.9s cubic-bezier(.2,.7,.2,1) both; animation-delay: var(--delay, 0s); }
+  .lead figcaption, .sheet figcaption { font-size: 0.95rem; color: var(--muted); }
+  .sheet { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; }
+  .sheet button { all: unset; cursor: pointer; display: block; }
+  .sheet button:focus-visible img { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .sheet img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; opacity: 0.85; transition: opacity 0.2s; }
+  .sheet button[aria-pressed="true"] img, .sheet button:hover img { opacity: 1; }
+  .sheet button[aria-pressed="true"] img { outline: 1px solid var(--accent); outline-offset: 2px; }
+  .detail { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 1.5rem 2.5rem; }
+  @media (max-width: 46rem) { .detail { grid-template-columns: minmax(0, 1fr); } }
+  .facts { margin: 0; display: grid; gap: 0; }
+  .facts div { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: 1rem; padding-block: 0.5rem; border-bottom: 1px solid var(--sand); }
+  .facts div:last-child { border-bottom: 0; }
+  .facts dt { font-family: var(--display); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); padding-top: 0.3rem; }
+  .facts dd { margin: 0; font-variant-numeric: tabular-nums; }
+  .words { display: grid; gap: 0.9rem; align-content: start; }
+  .words h4 { font-family: var(--display); font-weight: 400; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0 0 0.15rem; }
+  .words p { margin: 0; max-width: 62ch; }
+  .words .guests { font-style: italic; }
+  .links { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.75rem 1.5rem; }
+  .links a { font-family: var(--display); font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--sand); padding-bottom: 0.15rem; }
+  .links a:hover, .links a:focus-visible { border-bottom-color: var(--accent); outline: none; }
+  .empty { color: var(--muted); font-style: italic; }
+  @media (prefers-reduced-motion: reduce) {
+    .sheet img, .frame img { transition: none; }
+    .frame img.on, .masthead h1, .masthead .intro, .masthead .updated, .option { animation: none; }
+    .progress { display: none; }
+  }
+  .brandline { display: flex; align-items: center; gap: 0.7rem; }
+  .brandline .brand { margin: 0; }
+  .mark { width: 2.1rem; height: 2.1rem; flex: none; }
+</style>
+
+<header class="masthead band">
+  <div class="inner">
+    <div class="brandline"><svg class="mark" viewBox="5 12 50 46" aria-hidden="true"><path fill="currentColor" d="M7 21 L7 18.5 C8 16 11 15 14 15.5 L15.5 13.5 L17 15.5 C18 17 18.5 19 19.5 22 C20.5 25 22 28 24.5 29 C27 22 31 15 36 15 C41 15 44 22 47 27 C49.5 28 51.5 29.5 52 32 L53.5 37 L52 37.5 L51.5 36 C51.5 38 51 39 50 39.5 L50 54 L48 54 L47.5 41 L46 41 L45.5 54 L43.5 54 L43 40 C38 41 31 41 27 40 L26.5 54 L24.5 54 L24 41 L22.5 41 L22 54 L20 54 L20 37 C19.5 33 17 29 15 26 C13.5 24 12 22.5 11 22 Z"/><path d="M10 56 H54" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.5"/></svg><p class="brand" id="trip">Trip Agent</p></div>
+    <h1 id="title">Your options</h1>
+    <p class="intro" id="intro"></p>
+    <p class="updated" id="updated"></p>
+  </div>
+</header>
+<main class="band"><div class="inner" id="stays"></div></main>
+
+<!-- The planner's build script writes the options here. -->
+<script type="application/json" id="data">{"title": "Your options", "groups": []}</script>
+<script>
+  (function () {
+    var data = {};
+    try { data = JSON.parse(document.getElementById("data").textContent); } catch (e) { data = {}; }
+    function el(tag, cls, text) {
+      var n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text != null) n.textContent = text;
+      return n;
+    }
+    function setText(id, value) {
+      var n = document.getElementById(id);
+      if (value) n.textContent = value; else if (id !== "title" && id !== "trip") n.remove();
+    }
+    setText("title", data.title);
+    setText("trip", data.trip ? "Trip Agent · " + data.trip : "Trip Agent");
+    setText("intro", data.intro);
+    setText("updated", data.updated ? "Prices checked " + data.updated : "");
+    if (data.title) document.title = data.title;
+
+    var stays = document.getElementById("stays");
+    var groups = data.groups || [];
+    if (!groups.length) stays.appendChild(el("p", "empty", "No options yet. They appear here as the planner shortlists them."));
+
+    groups.forEach(function (g, gi) {
+      var section = el("section", "stay");
+      var head = el("div", "stay-head");
+      head.appendChild(el("h2", null, g.title || "Options"));
+      if (g.dates) head.appendChild(el("p", null, g.dates));
+      section.appendChild(head);
+
+      (g.options || []).forEach(function (o, oi) {
+        var card = el("article", "option");
+        var oh = el("div", "option-head");
+        oh.appendChild(el("h3", null, o.name));
+        if (o.place) oh.appendChild(el("span", "place", o.place));
+        if (o.status) oh.appendChild(el("span", "status" + (o.status === "chosen" ? " chosen" : ""), o.status));
+        card.appendChild(oh);
+
+        card.style.setProperty("--delay", (0.15 + oi * 0.18) + "s");
+        // Show 12, 8 or 4 photos, so the four-across contact sheet always fills its rows.
+        var photos = o.photos || [];
+        if (photos.length >= 4) photos = photos.slice(0, photos.length >= 12 ? 12 : photos.length >= 8 ? 8 : 4);
+        if (photos.length) {
+          // A slideshow: the hotel's photos cross-fade every few seconds with a slow drift,
+          // pausing while the pointer or focus is on the card, and stopping once a photo is picked.
+          var lead = el("figure", "lead");
+          var frame = el("div", "frame");
+          var slides = photos.map(function (p, pi) {
+            var im = el("img");
+            im.src = p.src; im.alt = p.caption || o.name;
+            if (pi > 0) im.loading = "lazy";
+            if (pi === 0) im.className = "on";
+            frame.appendChild(im);
+            return im;
+          });
+          if (photos.length > 1) {
+            frame.classList.add("many");
+            frame.tabIndex = 0;
+            frame.setAttribute("role", "region");
+            frame.setAttribute("aria-label", o.name + " photos. Left and right arrows change the photo.");
+            var prev = el("button", "nav prev", "\u2039"), next = el("button", "nav next", "\u203A");
+            prev.type = next.type = "button";
+            prev.setAttribute("aria-label", "Previous photo");
+            next.setAttribute("aria-label", "Next photo");
+            frame.appendChild(prev); frame.appendChild(next);
+          }
+          var bar = el("div", "progress"), fill = el("span");
+          bar.appendChild(fill);
+          var cap = el("figcaption", null, photos[0].caption || "");
+          lead.appendChild(frame);
+          if (photos.length > 1) lead.appendChild(bar);
+          lead.appendChild(cap);
+          card.appendChild(lead);
+
+          var current = 0, paused = false, timer = null, slideMs = 5000;
+          var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          var buttons = [];
+          function show(i) {
+            slides[current].classList.remove("on");
+            current = i;
+            var im = slides[i];
+            im.classList.remove("on"); void im.offsetWidth; im.classList.add("on");
+            cap.textContent = photos[i].caption || "";
+            buttons.forEach(function (x, xi) { x.setAttribute("aria-pressed", xi === i ? "true" : "false"); });
+          }
+          function restartBar() {
+            fill.classList.remove("run"); void fill.offsetWidth;
+            if (!paused) fill.classList.add("run");
+          }
+          function schedule() {
+            clearTimeout(timer);
+            if (paused || reduce || photos.length < 2) return;
+            restartBar();
+            timer = setTimeout(function () {
+              show((current + 1) % photos.length);
+              schedule();
+            }, slideMs);
+          }
+          // Go to a photo by hand (arrow, click, thumbnail or key); the slideshow carries on from there.
+          function go(i) {
+            show((i + photos.length) % photos.length);
+            schedule();
+          }
+          if (photos.length > 1) {
+            card.style.setProperty("--slide", slideMs / 1000 + "s");
+            // Start each slideshow a little after the one before, so they don't change together.
+            setTimeout(schedule, (gi * 2 + oi) * 900);
+            // Hovering the photo pauses it, so the arrows can be used without a race.
+            frame.addEventListener("mouseenter", function () { paused = true; bar.classList.add("paused"); clearTimeout(timer); });
+            frame.addEventListener("mouseleave", function () { paused = false; bar.classList.remove("paused"); schedule(); });
+            prev.addEventListener("click", function (e) { e.stopPropagation(); go(current - 1); });
+            next.addEventListener("click", function (e) { e.stopPropagation(); go(current + 1); });
+            frame.addEventListener("click", function () { go(current + 1); });
+            frame.addEventListener("keydown", function (e) {
+              if (e.key === "ArrowRight") { e.preventDefault(); go(current + 1); }
+              if (e.key === "ArrowLeft") { e.preventDefault(); go(current - 1); }
+            });
+          }
+
+          if (photos.length > 1) {
+            var sheet = el("div", "sheet");
+            photos.forEach(function (p, pi) {
+              var b = el("button");
+              b.type = "button";
+              b.id = "photo-" + gi + "-" + oi + "-" + pi;
+              b.setAttribute("aria-label", "Show photo: " + (p.caption || o.name));
+              b.setAttribute("aria-pressed", pi === 0 ? "true" : "false");
+              var t = el("img"); t.src = p.src; t.alt = ""; t.loading = "lazy";
+              b.appendChild(t);
+              b.addEventListener("click", function () {
+                go(pi);
+              });
+              buttons.push(b);
+              sheet.appendChild(b);
+            });
+            card.appendChild(sheet);
+          }
+        }
+
+        var detail = el("div", "detail");
+        var facts = el("dl", "facts");
+        (o.facts || []).forEach(function (f) {
+          var row = el("div");
+          row.appendChild(el("dt", null, f.label));
+          row.appendChild(el("dd", null, f.value));
+          facts.appendChild(row);
+        });
+        detail.appendChild(facts);
+        var words = el("div", "words");
+        [["Why it fits", o.why, ""], ["Trade-off", o.tradeoff, ""], ["What guests say", o.guests, "guests"]].forEach(function (w) {
+          if (!w[1]) return;
+          var block = el("div");
+          block.appendChild(el("h4", null, w[0]));
+          block.appendChild(el("p", w[2], w[1]));
+          words.appendChild(block);
+        });
+        if ((o.links || []).length) {
+          var links = el("div", "links");
+          o.links.forEach(function (l) {
+            if (!/^https?:\/\//i.test(l.href || "")) return;
+            var a = el("a", null, l.label);
+            a.href = l.href; a.target = "_blank"; a.rel = "noopener";
+            links.appendChild(a);
+          });
+          words.appendChild(links);
+        }
+        detail.appendChild(words);
+        card.appendChild(detail);
+        section.appendChild(card);
+      });
+      stays.appendChild(section);
+    });
+  })();
+</script>

@@ -1,0 +1,16 @@
+{
+  "name": "trip-agent",
+  "owner": {
+    "name": "Kinetik"
+  },
+  "metadata": {
+    "description": "Trip Agent, a free trip planner plugin for Claude, from Kinetik."
+  },
+  "plugins": [
+    {
+      "name": "trip-agent",
+      "description": "A trip planner that works like a travel agent across the desk.",
+      "source": "./"
+    }
+  ]
+}

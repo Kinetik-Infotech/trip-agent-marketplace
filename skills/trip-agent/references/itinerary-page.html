@@ -1,0 +1,244 @@
+<title>Trip Agent Itinerary</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<style>
+  /* Layout: a slim ink-blue masthead, a summary strip, then the trip as reference tables: day by day, bookings with prices and cancellation, and what is still open. */
+  :root {
+    --ground: #f7f5f2;
+    --paper: #fffdfa;
+    --ink: #1e2533;
+    --muted: #5c6576;
+    --accent: #14213d;
+    --sand: #ddd4ca;
+    --on-accent: #f3ede6;
+    --chosen: #2f5d46;
+    --open: #8a5a12;
+    --display: "Cinzel", "Trajan Pro", "Times New Roman", serif;
+    --body: "Cormorant Garamond", "Borgia Pro", Georgia, "Times New Roman", serif;
+    --data: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0d1320; --paper: #151c2b; --ink: #ece4dc; --muted: #a5aec0;
+      --accent: #c3d1ea; --sand: #2a3447; --on-accent: #f3ede6; --chosen: #8fc7a6; --open: #e0b36a; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0d1320; --paper: #151c2b; --ink: #ece4dc; --muted: #a5aec0;
+    --accent: #c3d1ea; --sand: #2a3447; --on-accent: #f3ede6; --chosen: #8fc7a6; --open: #e0b36a; color-scheme: dark;
+  }
+  body { background: var(--ground); color: var(--ink); font-family: var(--data); font-size: 0.95rem; line-height: 1.5; }
+  .band { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .inner { max-width: 60rem; margin-inline: auto; }
+  .masthead { background: #14213d; color: var(--on-accent); padding-block: 2rem 1.75rem; }
+  .brand { font-family: var(--display); font-size: 0.75rem; letter-spacing: 0.32em; text-transform: uppercase; opacity: 0.8; margin: 0; }
+  .masthead h1 { font-family: var(--display); font-weight: 400; font-size: clamp(1.5rem, 4vw, 2.1rem); letter-spacing: 0.07em; text-transform: uppercase; text-wrap: balance; margin: 0.5rem 0 0; }
+  .masthead .updated { margin: 0.5rem 0 0; opacity: 0.75; font-size: 0.85rem; }
+  main { display: grid; gap: 2.25rem; padding-block: 1.75rem 4rem; }
+  main > * { min-width: 0; }
+  h2 { font-family: var(--display); font-weight: 400; font-size: 1rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.6rem; }
+  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0; border: 1px solid var(--sand); background: var(--paper); }
+  .summary div { padding: 0.75rem 1rem; border-right: 1px solid var(--sand); border-bottom: 1px solid var(--sand); margin: 0 -1px -1px 0; }
+  .summary dt { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .summary dd { margin: 0.15rem 0 0; font-family: var(--body); font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--sand); background: var(--paper); }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  th { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; text-align: left; white-space: nowrap; }
+  th, td { padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--sand); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.date { white-space: nowrap; font-weight: 500; }
+  td.time { white-space: nowrap; color: var(--muted); width: 4.5rem; }
+  td.price, th.price { text-align: right; white-space: nowrap; }
+  tfoot td { border-top: 1px solid var(--accent); border-bottom: 0; font-weight: 500; }
+  .pill { display: inline-block; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid currentColor; padding: 0.05rem 0.45rem; white-space: nowrap; }
+  .pill.chosen, .pill.booked { color: var(--chosen); }
+  .pill.open { color: var(--open); }
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.35rem; max-width: 70ch; }
+  .empty { color: var(--muted); font-style: italic; }
+
+  /* The route: stops on a line that draws itself, with a marker travelling along it. Stacks vertically on a phone. */
+  .route { list-style: none; margin: 0; padding: 0 0 0.5rem; display: grid; grid-template-columns: repeat(var(--stops), minmax(0, 1fr)); position: relative; }
+  .route::before { content: ""; position: absolute; left: calc(50% / var(--stops)); right: calc(50% / var(--stops)); top: 0.55rem; height: 2px; background: var(--accent); transform-origin: left; animation: draw var(--run) cubic-bezier(.45,.05,.35,1) both; }
+  .route .traveller { position: absolute; top: 0.25rem; left: calc(50% / var(--stops)); width: 0.75rem; height: 0.75rem; margin-left: -0.375rem; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent); animation: travel var(--run) cubic-bezier(.45,.05,.35,1) both; }
+  .route li { position: relative; display: grid; justify-items: center; text-align: center; gap: 0.35rem; padding-top: 1.6rem; min-width: 0; }
+  .route li::before { content: ""; position: absolute; top: 0.25rem; width: 0.7rem; height: 0.7rem; border-radius: 50%; background: var(--paper); border: 2px solid var(--accent); animation: pop 0.45s cubic-bezier(.3,1.6,.5,1) both; animation-delay: calc(var(--i) * var(--step)); }
+  .route li.stay::before { background: var(--accent); }
+  .route .place { font-family: var(--display); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); animation: rise 0.6s ease both; animation-delay: calc(var(--i) * var(--step) + 0.1s); overflow-wrap: anywhere; }
+  .route .when { font-size: 0.78rem; color: var(--muted); animation: rise 0.6s ease both; animation-delay: calc(var(--i) * var(--step) + 0.2s); }
+  @keyframes draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes travel { from { left: calc(50% / var(--stops)); } to { left: calc(100% - 50% / var(--stops)); } }
+  @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @media (max-width: 40rem) {
+    .route { grid-template-columns: minmax(0, 1fr); gap: 0.9rem; padding-left: 1.75rem; }
+    .route::before { left: 0.55rem; right: auto; top: 0.6rem; bottom: 0.6rem; width: 2px; height: auto; transform-origin: top; animation-name: drawdown; }
+    .route .traveller { left: 0.25rem; top: 0.3rem; margin-left: 0; animation-name: traveldown; }
+    .route li { justify-items: start; text-align: left; padding-top: 0; }
+    .route li::before { left: -1.55rem; top: 0.3rem; }
+  }
+  @keyframes drawdown { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @keyframes traveldown { from { top: 0.3rem; } to { top: calc(100% - 1rem); } }
+  .daysection tbody tr { animation: rise 0.5s ease both; animation-delay: calc(0.4s + var(--r, 0) * 0.06s); }
+  .masthead h1 { animation: rise 0.9s ease both; }
+  @media (prefers-reduced-motion: reduce) {
+    .route::before, .route .traveller, .route li::before, .route .place, .route .when, .daysection tbody tr, .masthead h1 { animation: none; }
+    .route .traveller { display: none; }
+  }
+  .brandline { display: flex; align-items: center; gap: 0.7rem; }
+  .brandline .brand { margin: 0; }
+  .mark { width: 2.1rem; height: 2.1rem; flex: none; }
+</style>
+
+<header class="masthead band">
+  <div class="inner">
+    <div class="brandline"><svg class="mark" viewBox="5 12 50 46" aria-hidden="true"><path fill="currentColor" d="M7 21 L7 18.5 C8 16 11 15 14 15.5 L15.5 13.5 L17 15.5 C18 17 18.5 19 19.5 22 C20.5 25 22 28 24.5 29 C27 22 31 15 36 15 C41 15 44 22 47 27 C49.5 28 51.5 29.5 52 32 L53.5 37 L52 37.5 L51.5 36 C51.5 38 51 39 50 39.5 L50 54 L48 54 L47.5 41 L46 41 L45.5 54 L43.5 54 L43 40 C38 41 31 41 27 40 L26.5 54 L24.5 54 L24 41 L22.5 41 L22 54 L20 54 L20 37 C19.5 33 17 29 15 26 C13.5 24 12 22.5 11 22 Z"/><path d="M10 56 H54" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.5"/></svg><p class="brand" id="trip">Trip Agent</p></div>
+    <h1 id="title">Itinerary</h1>
+    <p class="updated" id="updated"></p>
+  </div>
+</header>
+<main class="band"><div class="inner" id="page" style="display:grid;gap:2.25rem"></div></main>
+
+<!-- The planner's build script writes the itinerary here. -->
+<script type="application/json" id="data">{"title": "Itinerary"}</script>
+<script>
+  (function () {
+    var data = {};
+    try { data = JSON.parse(document.getElementById("data").textContent); } catch (e) { data = {}; }
+    function el(tag, cls, text) {
+      var n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text != null) n.textContent = text;
+      return n;
+    }
+    function section(title) {
+      var s = el("section");
+      s.appendChild(el("h2", null, title));
+      page.appendChild(s);
+      return s;
+    }
+    function table(headers, rows, foot) {
+      var wrap = el("div", "table-wrap");
+      var t = el("table");
+      var thead = el("thead"), tr = el("tr");
+      headers.forEach(function (h) { tr.appendChild(el("th", h.cls || null, h.label)); });
+      thead.appendChild(tr); t.appendChild(thead);
+      var tbody = el("tbody");
+      rows.forEach(function (cells) {
+        var r = el("tr");
+        cells.forEach(function (c, i) {
+          var td = el("td", headers[i].cls || null);
+          if (c instanceof Node) td.appendChild(c); else td.textContent = c == null ? "" : c;
+          r.appendChild(td);
+        });
+        tbody.appendChild(r);
+      });
+      t.appendChild(tbody);
+      if (foot) t.appendChild(foot);
+      wrap.appendChild(t);
+      return wrap;
+    }
+    // A money figure such as "£2,938" counts up from zero; anything else is shown as written.
+    function countUp(node, text) {
+      var m = /^([^\d]*)([\d,]+)(.*)$/.exec(text || "");
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (!m || reduce || !/[£$€¥]/.test(m[1])) return;
+      var target = parseInt(m[2].replace(/,/g, ""), 10), start = null, ms = 1400;
+      function frame(t) {
+        if (start === null) start = t;
+        var k = Math.min(1, (t - start) / ms), eased = 1 - Math.pow(1 - k, 3);
+        node.textContent = m[1] + Math.round(target * eased).toLocaleString("en-GB") + m[3];
+        if (k < 1) requestAnimationFrame(frame); else node.textContent = text;
+      }
+      requestAnimationFrame(frame);
+    }
+    var page = document.getElementById("page");
+    document.getElementById("title").textContent = data.title || "Itinerary";
+    document.getElementById("trip").textContent = data.trip ? "Trip Agent · " + data.trip : "Trip Agent";
+    var up = document.getElementById("updated");
+    if (data.updated) up.textContent = "Updated " + data.updated; else up.remove();
+    if (data.title) document.title = data.title;
+
+    if ((data.summary || []).length) {
+      var s = section("Summary");
+      var dl = el("dl", "summary");
+      data.summary.forEach(function (x) {
+        var d = el("div");
+        d.appendChild(el("dt", null, x.label));
+        var dd = el("dd", null, x.value);
+        d.appendChild(dd);
+        dl.appendChild(d);
+        countUp(dd, x.value);
+      });
+      s.appendChild(dl);
+    }
+
+    if ((data.route || []).length > 1) {
+      var r = section("Route");
+      var ol = el("ol", "route");
+      var step = 0.35;
+      ol.style.setProperty("--stops", data.route.length);
+      ol.style.setProperty("--step", step + "s");
+      ol.style.setProperty("--run", (step * (data.route.length - 1) + 0.3) + "s");
+      ol.setAttribute("aria-label", "Route, in order");
+      data.route.forEach(function (stop, i) {
+        var li = el("li", stop.stay ? "stay" : null);
+        li.style.setProperty("--i", i);
+        li.appendChild(el("span", "place", stop.place));
+        if (stop.when) li.appendChild(el("span", "when", stop.when));
+        ol.appendChild(li);
+      });
+      var dot = el("span", "traveller"); dot.setAttribute("aria-hidden", "true");
+      ol.appendChild(dot);
+      r.appendChild(ol);
+    }
+
+    if ((data.days || []).length) {
+      var rows = [];
+      data.days.forEach(function (d) {
+        (d.items || [{}]).forEach(function (it, i) {
+          rows.push([i === 0 ? d.date : "", it.time || "", it.what || ""]);
+        });
+      });
+      var days = section("Day by day");
+      days.className = "daysection";
+      days.appendChild(table([{ label: "Date", cls: "date" }, { label: "Time", cls: "time" }, { label: "What" }], rows));
+      days.querySelectorAll("tbody tr").forEach(function (tr, i) { tr.style.setProperty("--r", i); });
+    }
+
+    if ((data.bookings || []).length) {
+      var brows = data.bookings.map(function (b) {
+        var status = el("span", "pill " + (b.status || "open"), b.status || "open");
+        var link = "";
+        if (b.href && /^https?:\/\//i.test(b.href)) { link = el("a", null, b.linkLabel || "Link"); link.href = b.href; link.target = "_blank"; link.rel = "noopener"; }
+        return [b.item, b.dates, b.detail, b.price, b.cancellation, status, link];
+      });
+      var foot = null;
+      if (data.total) {
+        foot = el("tfoot");
+        var fr = el("tr");
+        var label = el("td", null, data.total.label || "Total"); label.colSpan = 3;
+        var value = el("td", "price", data.total.value);
+        var rest = el("td", null, data.total.note || ""); rest.colSpan = 3;
+        fr.appendChild(label); fr.appendChild(value); fr.appendChild(rest);
+        foot.appendChild(fr);
+      }
+      section("Bookings").appendChild(table([
+        { label: "Item" }, { label: "Dates", cls: "date" }, { label: "Detail" }, { label: "Price", cls: "price" },
+        { label: "Cancellation" }, { label: "Status" }, { label: "Book" }
+      ], brows, foot));
+    }
+
+    [["Still to decide", data.open], ["Notes", data.notes]].forEach(function (pair) {
+      if (!(pair[1] || []).length) return;
+      var ul = el("ul");
+      pair[1].forEach(function (x) { ul.appendChild(el("li", null, x)); });
+      section(pair[0]).appendChild(ul);
+    });
+
+    if (!page.children.length) page.appendChild(el("p", "empty", "Nothing chosen yet. The itinerary fills in as the traveller chooses."));
+  })();
+</script>

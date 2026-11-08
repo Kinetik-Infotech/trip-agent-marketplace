@@ -1,0 +1,217 @@
+<title>Trip Agent Profile</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+  /* Layout: an ink-blue masthead band, then one quiet reading column on sand-white, with hairline tables like a hotel's room card. */
+  :root {
+    --ground: #f7f5f2;      /* page */
+    --paper: #fffdfa;       /* tables */
+    --ink: #1e2533;         /* body text */
+    --muted: #5c6576;       /* captions */
+    --accent: #14213d;        /* masthead, headings */
+    --sand: #ddd4ca;        /* rules */
+    --on-accent: #f3ede6;     /* text on the masthead */
+    --display: "Cinzel", "Trajan Pro", "Times New Roman", serif;
+    --body: "Cormorant Garamond", "Borgia Pro", Georgia, "Times New Roman", serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0d1320; --paper: #151c2b; --ink: #ece4dc; --muted: #a5aec0;
+      --accent: #c3d1ea; --sand: #2a3447; --on-accent: #f3ede6; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0d1320; --paper: #151c2b; --ink: #ece4dc; --muted: #a5aec0;
+    --accent: #c3d1ea; --sand: #2a3447; --on-accent: #f3ede6; color-scheme: dark;
+  }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 1.1875rem;
+    line-height: 1.55;
+  }
+  .masthead {
+    background: #14213d;
+    color: var(--on-accent);
+    padding-block: 2.75rem 2.25rem;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .masthead-inner, main {
+    max-width: 46rem;
+    margin-inline: auto;
+  }
+  .brand {
+    font-family: var(--display);
+    font-size: 0.8125rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    opacity: 0.8;
+    margin: 0;
+  }
+  .masthead h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-wrap: balance;
+    margin: 0.6rem 0 0;
+  }
+  .masthead .note {
+    font-style: italic;
+    margin: 0.75rem 0 0;
+    opacity: 0.85;
+    max-width: 38rem;
+  }
+  main {
+    display: grid;
+    gap: 0.5rem;
+    padding-block: 2rem 4rem;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  main > * { min-width: 0; }
+  main h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 1.125rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 2rem 0 0.25rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--sand);
+    text-wrap: balance;
+  }
+  main h3 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 0.875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 1.25rem 0 0.25rem;
+  }
+  main p, main ul { margin: 0.25rem 0; max-width: 65ch; }
+  main ul { padding-left: 1.1rem; display: grid; gap: 0.35rem; }
+  main li::marker { color: var(--muted); }
+  main strong { font-weight: 600; }
+  .table-wrap {
+    overflow-x: auto;
+    background: var(--paper);
+    border: 1px solid var(--sand);
+    margin-top: 0.5rem;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 1.0625rem;
+  }
+  th {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    white-space: nowrap;
+  }
+  th, td {
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid var(--sand);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: 0; }
+  td:first-child { font-variant-numeric: tabular-nums; }
+  .empty { color: var(--muted); font-style: italic; }
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .brandline { display: flex; align-items: center; gap: 0.7rem; }
+  .brandline .brand { margin: 0; }
+  .mark { width: 2.1rem; height: 2.1rem; flex: none; }
+</style>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="brandline"><svg class="mark" viewBox="5 12 50 46" aria-hidden="true"><path fill="currentColor" d="M7 21 L7 18.5 C8 16 11 15 14 15.5 L15.5 13.5 L17 15.5 C18 17 18.5 19 19.5 22 C20.5 25 22 28 24.5 29 C27 22 31 15 36 15 C41 15 44 22 47 27 C49.5 28 51.5 29.5 52 32 L53.5 37 L52 37.5 L51.5 36 C51.5 38 51 39 50 39.5 L50 54 L48 54 L47.5 41 L46 41 L45.5 54 L43.5 54 L43 40 C38 41 31 41 27 40 L26.5 54 L24.5 54 L24 41 L22.5 41 L22 54 L20 54 L20 37 C19.5 33 17 29 15 26 C13.5 24 12 22.5 11 22 Z"/><path d="M10 56 H54" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.5"/></svg><p class="brand">Trip Agent</p></div>
+    <h1 id="title">Traveller profile</h1>
+    <p class="note" id="note"></p>
+  </div>
+</header>
+<main id="profile-body"></main>
+
+<!-- The planner pastes the traveller's profile.md, unchanged, between these two tags. -->
+<script type="text/markdown" id="profile">
+# Traveller profile
+
+Nothing saved yet.
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js" integrity="sha384-/TQbtLCAerC3jgaim+N78RZSDYV7ryeoBCVqTuzRrFec2akfBkHS7ACQ3PQhvMVi" crossorigin="anonymous"></script>
+<script>
+  (function () {
+    var source = document.getElementById("profile").textContent.trim();
+    var body = document.getElementById("profile-body");
+    var holder = document.createElement("div");
+    var safe = false;
+    if (window.marked) {
+      // Raw HTML in the profile is dropped, and only http(s) links are kept.
+      window.marked.use({ renderer: { html: function () { return ""; } } });
+      holder.innerHTML = window.marked.parse(source);
+      holder.querySelectorAll("*").forEach(function (n) {
+        if (!/^(H[1-6]|P|UL|OL|LI|STRONG|EM|CODE|PRE|BLOCKQUOTE|TABLE|THEAD|TBODY|TR|TH|TD|A|BR|HR|DEL)$/.test(n.tagName)) { n.replaceWith(document.createTextNode(n.textContent)); return; }
+        Array.prototype.slice.call(n.attributes).forEach(function (at) {
+          if (at.name === "href" && /^https?:\/\//i.test(at.value)) return;
+          if (at.name === "align") return;
+          n.removeAttribute(at.name);
+        });
+        if (n.tagName === "A") { n.target = "_blank"; n.rel = "noopener"; }
+      });
+      safe = true;
+    }
+    if (!safe) { holder.textContent = ""; var pre = document.createElement("pre"); pre.textContent = source; holder.appendChild(pre); }
+
+    // The first heading and the paragraph after it go in the masthead.
+    var h1 = holder.querySelector("h1");
+    if (h1) {
+      document.getElementById("title").textContent = h1.textContent;
+      var next = h1.nextElementSibling;
+      if (next && next.tagName === "P") {
+        document.getElementById("note").textContent = next.textContent;
+        next.remove();
+      }
+      h1.remove();
+    }
+
+    // Tables scroll inside their own frame; a table with no rows says so.
+    holder.querySelectorAll("table").forEach(function (t) {
+      var wrap = document.createElement("div");
+      wrap.className = "table-wrap";
+      t.parentNode.insertBefore(wrap, t);
+      wrap.appendChild(t);
+      if (!t.querySelector("tbody tr")) {
+        var p = document.createElement("p");
+        p.className = "empty";
+        p.textContent = "None yet.";
+        wrap.replaceWith(p);
+      }
+    });
+
+    // List items left blank in the template ("Currency:") read as not yet known.
+    holder.querySelectorAll("li").forEach(function (li) {
+      if (/:\s*$/.test(li.textContent)) {
+        var s = document.createElement("span");
+        s.className = "empty";
+        s.textContent = " not yet known";
+        li.appendChild(s);
+      }
+    });
+
+    while (holder.firstChild) body.appendChild(holder.firstChild);
+  })();
+</script>
