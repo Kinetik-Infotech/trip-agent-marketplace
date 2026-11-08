@@ -7,7 +7,8 @@ The planner uses the traveller's own travel connectors, added in their Claude ac
 | Kiwi.com | Flights, with stops, layovers and stopovers |
 | Tripadvisor | Reviews, review counts, ranking (search sorted by popularity), photos. Prices come in US dollars only, before taxes: convert them with scripts/fx.py |
 | Brek | Hotel prices for exact dates, in pounds |
-| Civitatis, Veltra | Activities and tours |
+| Civitatis | Excursions and tours: needed for proposing excursions |
+| Veltra | More tours and activities (optional) |
 | AccuWeather | Weather |
 
 Tripadvisor needs `mcpServerVersion: {"version": "V2026_0327"}` and `requestContext: {"clientType": "DESKTOP"}` on each call.

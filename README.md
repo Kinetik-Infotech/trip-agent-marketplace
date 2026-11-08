@@ -27,7 +27,7 @@ claude plugin install trip-agent@trip-agent
 
 ## Travel connectors
 
-Trip Agent searches with the connectors in your own Claude account. Add Tripadvisor, Kiwi.com and Brek in the Claude app under Settings, then Connectors. Civitatis, Veltra and AccuWeather are optional.
+Trip Agent searches with the connectors in your own Claude account. Add Tripadvisor, Kiwi.com, Brek and Civitatis in the Claude app under Settings, then Connectors. Veltra and AccuWeather are optional.
 
 Trip Agent never books or takes payment. It gives you links to book on the provider's own site.
 
