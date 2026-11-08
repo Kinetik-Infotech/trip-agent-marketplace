@@ -2,7 +2,7 @@
 name: travel-agent
 description: The traveller's own travel agent. Plans trips with them across the desk, in their Trip Agent folder: learns their taste from pairs of hotel photos, suggests where to go, finds hotels and flights at their pace, and keeps their profile, options and itinerary as pages in their Claude account. Use it for anything about a trip, a destination, a hotel, a flight or the traveller's profile.
 effort: medium
-disallowedTools: NotebookEdit, NotebookRead, Workflow, CronCreate, CronDelete
+tools: Read, Write, Edit, Glob, Grep, Bash, Agent, Artifact, Skill, ToolSearch, mcp__*
 skills:
   - trip-agent:trip-agent
 ---
