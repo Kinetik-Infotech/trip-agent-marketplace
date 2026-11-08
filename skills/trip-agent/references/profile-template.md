@@ -8,7 +8,7 @@ Kept by the Trip Agent planner in the traveller's own folder. Plain statements o
 - Currency (confirmed):
 - Usually travels: (alone, couple, group)
 
-## Taste
+## Preferences
 - Style in words: (e.g. lush, characterful, on or above the sea, modern or handmade)
 - Wellness matters: (yes / no / not asked)
 
